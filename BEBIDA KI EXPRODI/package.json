@@ -1,0 +1,20 @@
+{
+  "name": "bebida-ki-exprodi",
+  "version": "1.0.0",
+  "description": "Jogo de fases onde cada fase tem uma receita de bebida que você precisa dosar sem explodir!",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -l 8080 .",
+    "dev": "npx serve -l 8080 .",
+    "serve": "python -m http.server 8080"
+  },
+  "keywords": [
+    "game",
+    "arcade",
+    "bartender",
+    "explosion",
+    "html5-game"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}

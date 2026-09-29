@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bebida Ki Exprodi! - O Jogo do Barman Alquimista</title>
+  <meta name="description" content="Prepare coquetéis voláteis com dosagens exatas de ingredientes químicos. Cuidado: se errar a medida, a bebida EXPLODE!">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20width=%22100%22%20height=%22100%22><text y=%22.9em%22 font-size=%2290%22>💥</text></svg>">
+</head>
+<body>
+
+  <!-- Canvas Global de Efeitos de Partículas, Explosão e Respingos -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Viewport Principal do Jogo (com suporte a tremor de tela) -->
+  <div id="game-viewport">
+
+    <!-- Cabeçalho / Barra Superior -->
+    <header class="game-header">
+      <div class="brand">
+        <span class="brand-icon">🧪💥</span>
+        <h1 class="brand-title">BEBIDA KI EXPRODI!</h1>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-badge">
+          <span class="stat-label">Fase Atual</span>
+          <span class="stat-value" id="header-level-badge">1 / 5</span>
+        </div>
+        <div class="stat-badge">
+          <span class="stat-label">Pontos</span>
+          <span class="stat-value" id="header-score">0</span>
+        </div>
+        <div class="stat-badge">
+          <span class="stat-label">Estrelas</span>
+          <span class="stat-value" id="header-stars">⭐ 0</span>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <button id="btn-sound" class="btn-icon" title="Ativar/Desativar Som" aria-label="Som">🔊</button>
+        <button id="btn-levels" class="btn-icon" title="Menu de Fases" aria-label="Fases">🗺️</button>
+        <button id="btn-help" class="btn-icon" title="Como Jogar" aria-label="Ajuda">❓</button>
+      </div>
+    </header>
+
+    <!-- Balcão do Bar (Área de Ação) -->
+    <main class="bar-scene">
+
+      <!-- Coluna da Esquerda: Comanda de Receita -->
+      <section class="recipe-panel" aria-label="Comanda da Receita">
+        <div class="recipe-header">
+          <span class="level-tag" id="recipe-level-tag">Fase 1</span>
+          <h2 class="recipe-title" id="recipe-drink-name">Limonada Elétrica</h2>
+          <p class="recipe-subtitle" id="recipe-story">Prepare a mistura com precisão química antes que os vapores detonem!</p>
+        </div>
+
+        <div class="recipe-items-list" id="recipe-items-container">
+          <!-- Gerado dinamicamente via JS -->
+        </div>
+
+        <div class="recipe-tips" id="recipe-tips-box">
+          <span>💡</span>
+          <p id="recipe-tips-text">Mantenha o botão pressionado para despejar. Solte um pouco antes do ponto!</p>
+        </div>
+      </section>
+
+      <!-- Coluna Central: Estação de Mistura e Copo Graduado -->
+      <section class="center-station" aria-label="Estação de Preparo">
+
+        <!-- Manômetro de Instabilidade / Risco de Explosão -->
+        <div class="danger-meter-container">
+          <div class="danger-header">
+            <span class="danger-title" id="danger-title-badge">⚠️ Instabilidade Química</span>
+            <span class="danger-status" id="danger-status-badge">ESTÁVEL</span>
+          </div>
+          <div class="danger-gauge-bar">
+            <div class="danger-gauge-fill" id="danger-gauge-fill"></div>
+          </div>
+        </div>
+
+        <!-- Copo Medidor com Física de Líquidos -->
+        <div class="glass-stage">
+          <div class="pouring-stream-indicator" id="pouring-indicator">
+            <span id="pouring-indicator-dot"></span>
+            <span id="pouring-indicator-text">Despejando...</span>
+          </div>
+          <canvas id="glass-canvas" width="280" height="420"></canvas>
+          <div class="coaster"></div>
+        </div>
+
+        <!-- Botões de Ação da Estação -->
+        <div class="station-actions">
+          <button id="btn-dump" class="btn-secondary" title="Esvaziar o copo e recomeçar a fase">
+            <span>🗑️</span> Esvaziar Copo
+          </button>
+          <button id="btn-serve" class="btn-primary" title="Servir a bebida e validar a receita">
+            <span>🍸</span> Servir Bebida!
+          </button>
+        </div>
+
+      </section>
+
+      <!-- Coluna da Direita: Prateleira de Garrafas / Ingredientes -->
+      <aside class="bottles-panel" aria-label="Prateleira de Ingredientes">
+        <h3 class="panel-title">Ingredientes Voláteis</h3>
+        <p class="panel-hint">Segure o botão ou a garrafa para despejar:</p>
+        <div class="bottles-shelf" id="bottles-shelf-container">
+          <!-- Garrafas renderizadas via JS -->
+        </div>
+      </aside>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: KABOOM! (Bebida Explodiu) -->
+  <div class="modal-overlay modal-kaboom" id="modal-kaboom">
+    <div class="modal-box">
+      <div class="kaboom-icon">💥</div>
+      <h2 class="kaboom-badge">KABOOOM!</h2>
+      <p class="recipe-title">A BEBIDA EXPLODIU!</p>
+      <p class="kaboom-reason" id="kaboom-reason-text">
+        Você errou a dosagem crítica e gerou uma reação em cadeia catastrófica no balcão!
+      </p>
+      <button class="btn-primary" id="btn-retry" style="margin: 0 auto; background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);">
+        <span>🔄</span> Tentar Novamente
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: VITÓRIA NA FASE -->
+  <div class="modal-overlay modal-victory" id="modal-victory">
+    <div class="modal-box">
+      <h2 class="victory-title">🍸 COQUETEL PERFEITO!</h2>
+      <div class="victory-stars" id="victory-stars-box">
+        <span class="star-earned">⭐</span>
+        <span class="star-earned">⭐</span>
+        <span class="star-earned">⭐</span>
+      </div>
+      <p class="recipe-subtitle" id="victory-message">
+        A alquimia perfeita! Nenhum cliente foi vaporizado hoje.
+      </p>
+      <div class="victory-stats-box">
+        <div>
+          <span class="stat-label">Precisão</span>
+          <div class="stat-value" id="victory-accuracy" style="color: #22c55e;">98%</div>
+        </div>
+        <div>
+          <span class="stat-label">Pontos Obtidos</span>
+          <div class="stat-value" id="victory-points" style="color: #facc15;">+1250</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn-secondary" id="btn-replay-phase">
+          <span>🔄</span> Repetir
+        </button>
+        <button class="btn-primary" id="btn-next-level">
+          <span>🚀</span> Próxima Fase
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SELEÇÃO DE FASES -->
+  <div class="modal-overlay" id="modal-levels">
+    <div class="modal-box" style="max-width: 600px;">
+      <h2 class="recipe-title" style="margin-bottom: 8px;">🗺️ Cardápio de Fases</h2>
+      <p class="recipe-subtitle">Selecione uma fase já desbloqueada:</p>
+      <div class="levels-grid" id="levels-grid-container">
+        <!-- Gerado via JS -->
+      </div>
+      <button class="btn-secondary" id="btn-close-levels" style="margin: 0 auto;">
+        Fechar
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: AJUDA / COMO JOGAR -->
+  <div class="modal-overlay" id="modal-help">
+    <div class="modal-box">
+      <h2 class="recipe-title" style="margin-bottom: 12px;">❓ Como Jogar</h2>
+      <div style="text-align: left; font-size: 14px; line-height: 1.6; color: #cbd5e1; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+        <p>🎯 <strong>Objetivo:</strong> Prepare o coquetel solicitado na comanda à esquerda, respeitando a dosagem em mililitros (ml) de cada ingrediente.</p>
+        <p>🍾 <strong>Como Dosar:</strong> Clique e mantenha pressionado o botão ou a garrafa na prateleira da direita para despejar o líquido no copo medidor.</p>
+        <p>💥 <strong>CUIDADO COM A EXPLOSÃO:</strong> Se você passar muito da medida exigida (além da margem de tolerância), a mistura fica instável e <strong>EXPLODE</strong>!</p>
+        <p>⭐ <strong>Estrelas:</strong> Quanto mais próximo você acertar a quantidade exata de cada componente, maior sua pontuação e estrelas obtidas.</p>
+      </div>
+      <button class="btn-primary" id="btn-close-help" style="margin: 0 auto;">
+        Entendi, Vamos ao Bar!
+      </button>
+    </div>
+  </div>
+
+  <!-- Script Principal do Jogo -->
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>

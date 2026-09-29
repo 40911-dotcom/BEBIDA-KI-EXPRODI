@@ -1,0 +1,880 @@
+/* style.css - Design do Jogo "Bebida Ki Exprodi" */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Bungee&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root {
+  --bg-dark: #0a0b10;
+  --bg-bar: #12141e;
+  --neon-cyan: #06b6d4;
+  --neon-pink: #f43f5e;
+  --neon-yellow: #facc15;
+  --neon-green: #22c55e;
+  --neon-amber: #f97316;
+  --glass-bg: rgba(22, 27, 46, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --danger-red: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Canvas de Partículas Global (explosão, jatos, respingos) */
+#particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Container do Jogo com suporte a Tremor de Tela */
+#game-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 30%, #1a1c2e 0%, #0d0e17 75%, #05060a 100%);
+  transition: transform 0.05s ease;
+  overflow: hidden;
+}
+
+/* Animações de Tremor */
+.shake-light {
+  animation: shakeLight 0.15s infinite;
+}
+
+.shake-medium {
+  animation: shakeMed 0.1s infinite;
+}
+
+.shake-severe {
+  animation: shakeSevere 0.06s infinite;
+}
+
+@keyframes shakeLight {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  25% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+  50% { transform: translate(1px, -1px) rotate(0.5deg); }
+  75% { transform: translate(-1px, 1px) rotate(0deg); }
+  100% { transform: translate(1px, -1px) rotate(0deg); }
+}
+
+@keyframes shakeMed {
+  0% { transform: translate(3px, -3px) rotate(1deg); }
+  25% { transform: translate(-4px, 2px) rotate(-1deg); }
+  50% { transform: translate(4px, 3px) rotate(1.5deg); }
+  75% { transform: translate(-3px, -2px) rotate(-0.5deg); }
+  100% { transform: translate(2px, 1px) rotate(0deg); }
+}
+
+@keyframes shakeSevere {
+  0% { transform: translate(8px, -8px) rotate(3deg) scale(1.02); }
+  25% { transform: translate(-10px, 9px) rotate(-3deg) scale(0.99); }
+  50% { transform: translate(11px, 7px) rotate(4deg) scale(1.03); }
+  75% { transform: translate(-9px, -9px) rotate(-2deg) scale(0.98); }
+  100% { transform: translate(6px, 4px) rotate(1deg) scale(1); }
+}
+
+/* CABEÇALHO / TOPO */
+header.game-header {
+  height: 70px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(10, 11, 16, 0.85);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 28px;
+  animation: pulseIcon 2s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(5deg); }
+}
+
+.brand-title {
+  font-family: 'Bungee', cursive;
+  font-size: 22px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  letter-spacing: 1px;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.stat-badge {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--neon-cyan);
+}
+
+.header-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ÁREA PRINCIPAL DO BAR */
+main.bar-scene {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 340px 1fr 340px;
+  gap: 20px;
+  padding: 16px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* COLUNA ESQUERDA: Livro de Receitas / Comanda */
+.recipe-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow-y: auto;
+}
+
+.recipe-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.level-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--neon-cyan);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.recipe-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.recipe-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.recipe-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.recipe-item-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.recipe-item-card.completed {
+  border-color: var(--neon-green);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.recipe-item-card.overdosed {
+  border-color: var(--danger-red);
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.recipe-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ingredient-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.ingredient-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ingredient-ml-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.1s linear, background-color 0.2s;
+  border-radius: 4px;
+}
+
+.progress-target-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+  z-index: 2;
+}
+
+.tolerance-info {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.recipe-tips {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  font-size: 12px;
+  color: #fde68a;
+  line-height: 1.4;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* COLUNA CENTRAL: O Balcão de Preparo com o Copo e Jatos */
+.center-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Manômetro de Instabilidade / Risco de Explosão */
+.danger-meter-container {
+  width: 100%;
+  max-width: 440px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 5;
+}
+
+.danger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.danger-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.danger-title.critical {
+  color: var(--danger-red);
+  animation: blinkRed 0.4s infinite alternate;
+}
+
+@keyframes blinkRed {
+  from { opacity: 1; text-shadow: 0 0 10px var(--danger-red); }
+  to { opacity: 0.3; }
+}
+
+.danger-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neon-green);
+}
+
+.danger-status.warning {
+  color: var(--neon-yellow);
+}
+
+.danger-status.critical {
+  color: var(--danger-red);
+}
+
+.danger-gauge-bar {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.danger-gauge-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e 0%, #facc15 50%, #f97316 75%, #ef4444 100%);
+  border-radius: 6px;
+  transition: width 0.1s ease;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.danger-gauge-fill.critical {
+  box-shadow: 0 0 18px var(--danger-red);
+  animation: pulseBar 0.3s infinite alternate;
+}
+
+@keyframes pulseBar {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.6); }
+}
+
+/* Estação do Copo Central */
+.glass-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.pouring-stream-indicator {
+  position: absolute;
+  top: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.pouring-stream-indicator.active {
+  display: flex;
+}
+
+#glass-canvas {
+  width: 240px;
+  height: 380px;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.coaster {
+  width: 220px;
+  height: 18px;
+  background: radial-gradient(ellipse at center, rgba(6, 182, 212, 0.3) 0%, rgba(0, 0, 0, 0.8) 70%);
+  border-radius: 50%;
+  margin-top: -10px;
+  filter: blur(2px);
+}
+
+/* Barra de Ações Inferior */
+.station-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  z-index: 5;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7, #06b6d4);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 28px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(6, 182, 212, 0.6);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
+
+/* COLUNA DIREITA: Prateleira de Garrafas / Ingredientes */
+.bottles-panel {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  overflow-y: auto;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  color: #ffffff;
+}
+
+.panel-hint {
+  font-size: 12px;
+  color: var(--neon-cyan);
+  margin-bottom: 16px;
+}
+
+.bottles-shelf {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  flex: 1;
+}
+
+/* Cartão da Garrafa */
+.bottle-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  touch-action: none;
+}
+
+.bottle-card:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.bottle-card.pouring {
+  border-color: var(--neon-cyan);
+  background: rgba(6, 182, 212, 0.15);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  transform: scale(0.98);
+}
+
+.bottle-graphic {
+  width: 44px;
+  height: 60px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottle-svg {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.2s ease;
+}
+
+.bottle-card.pouring .bottle-svg {
+  transform: rotate(-35deg) translateY(-4px);
+}
+
+.bottle-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottle-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.bottle-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.bottle-hold-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  text-transform: uppercase;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bottle-card.pouring .bottle-hold-btn {
+  background: var(--neon-cyan);
+  color: #000000;
+}
+
+/* MODAIS (Vitória, KABOOM, Seleção de Fases) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-box {
+  background: #131726;
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  padding: 36px 40px;
+  width: 90%;
+  max-width: 520px;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.modal-overlay.active .modal-box {
+  transform: scale(1);
+}
+
+/* Modal KABOOM (Derrota) */
+.modal-kaboom .modal-box {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.35);
+  background: radial-gradient(circle at center, #261214 0%, #110809 100%);
+}
+
+.kaboom-badge {
+  font-family: 'Bungee', cursive;
+  font-size: 46px;
+  color: #ef4444;
+  text-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+  margin-bottom: 8px;
+  animation: kaboomShake 0.4s infinite alternate;
+}
+
+@keyframes kaboomShake {
+  0% { transform: scale(1) rotate(-2deg); }
+  100% { transform: scale(1.08) rotate(2deg); }
+}
+
+.kaboom-icon {
+  font-size: 72px;
+  margin-bottom: 12px;
+  animation: spinIcon 1s ease-out;
+}
+
+@keyframes spinIcon {
+  0% { transform: scale(0) rotate(-180deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.kaboom-reason {
+  font-size: 15px;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 14px;
+  border-radius: 12px;
+  margin: 18px 0 24px;
+  line-height: 1.5;
+}
+
+/* Modal Vitória */
+.modal-victory .modal-box {
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 50px rgba(34, 197, 94, 0.25);
+  background: radial-gradient(circle at center, #0f241a 0%, #09140f 100%);
+}
+
+.victory-stars {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 38px;
+  margin: 12px 0 16px;
+}
+
+.star-empty {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.star-earned {
+  color: #facc15;
+  text-shadow: 0 0 20px #facc15;
+  animation: starPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes starPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.victory-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.victory-stats-box {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 14px;
+  padding: 14px;
+  margin: 16px 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Modal de Fases */
+.levels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.level-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-card:hover:not(.locked) {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: var(--neon-cyan);
+  transform: translateY(-3px);
+}
+
+.level-card.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.level-num {
+  font-family: 'Bungee', cursive;
+  font-size: 24px;
+  color: var(--neon-cyan);
+}
+
+.level-name-small {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.level-card-stars {
+  font-size: 14px;
+  color: #facc15;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  main.bar-scene {
+    grid-template-columns: 280px 1fr 280px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 860px) {
+  main.bar-scene {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .recipe-panel, .bottles-panel {
+    max-height: 250px;
+  }
+}
